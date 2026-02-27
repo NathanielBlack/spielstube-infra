@@ -1,0 +1,5 @@
+---
+registry_domain: registry.spielstu.be
+registry_user: deploy
+# Override this with ansible-vault or --extra-vars
+registry_password: changeme

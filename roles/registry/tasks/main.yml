@@ -1,0 +1,47 @@
+---
+- name: Create registry directory
+  file:
+    path: /opt/registry
+    state: directory
+    owner: deploy
+    group: deploy
+
+- name: Install apache2-utils for htpasswd
+  apt:
+    name: apache2-utils
+    state: present
+
+- name: Create auth directory
+  file:
+    path: /opt/registry/auth
+    state: directory
+    owner: deploy
+    group: deploy
+
+- name: Create registry htpasswd file
+  command: >
+    htpasswd -Bbn {{ registry_user }} {{ registry_password }}
+  register: htpasswd_output
+  changed_when: false
+  no_log: true
+
+- name: Write htpasswd file
+  copy:
+    content: "{{ htpasswd_output.stdout }}\n"
+    dest: /opt/registry/auth/htpasswd
+    owner: deploy
+    group: deploy
+    mode: "0600"
+
+- name: Deploy registry docker-compose
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/registry/docker-compose.yml
+    owner: deploy
+    group: deploy
+
+- name: Start registry stack
+  community.docker.docker_compose_v2:
+    project_src: /opt/registry
+    state: present
+    pull: always

@@ -1,0 +1,11 @@
+---
+# Deploy Hamburg map game
+# Usage: ansible-playbook games/hamburg/deploy.yml
+- name: Deploy Hamburg game
+  hosts: spielstube
+  vars:
+    game_name: hamburg
+    game_compose_template: "{{ playbook_dir }}/docker-compose.yml.j2"
+    game_env_template: "{{ playbook_dir }}/env.j2"
+  roles:
+    - game

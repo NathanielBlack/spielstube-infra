@@ -1,0 +1,27 @@
+---
+- name: Create proxy directory
+  file:
+    path: /opt/proxy
+    state: directory
+    owner: deploy
+    group: deploy
+
+- name: Deploy proxy docker-compose
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/proxy/docker-compose.yml
+    owner: deploy
+    group: deploy
+
+- name: Create custom nginx config for large headers
+  copy:
+    src: custom-nginx.conf
+    dest: /opt/proxy/custom-nginx.conf
+    owner: deploy
+    group: deploy
+
+- name: Start proxy stack
+  community.docker.docker_compose_v2:
+    project_src: /opt/proxy
+    state: present
+    pull: always

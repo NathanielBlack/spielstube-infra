@@ -1,0 +1,37 @@
+---
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: present
+
+- name: Install Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+
+- name: Add deploy user to docker group
+  user:
+    name: deploy
+    groups: docker
+    append: yes
+
+- name: Enable Docker service
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Create shared proxy network
+  docker_network:
+    name: proxy
+    state: present

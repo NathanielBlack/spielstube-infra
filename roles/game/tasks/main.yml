@@ -1,0 +1,45 @@
+---
+- name: Create game directory
+  file:
+    path: "/opt/games/{{ game_name }}"
+    state: directory
+    owner: deploy
+    group: deploy
+
+- name: Deploy game docker-compose
+  template:
+    src: "{{ game_compose_template }}"
+    dest: "/opt/games/{{ game_name }}/docker-compose.yml"
+    owner: deploy
+    group: deploy
+  when: game_compose_template is defined
+
+- name: Copy game docker-compose file
+  copy:
+    src: "{{ game_compose_file }}"
+    dest: "/opt/games/{{ game_name }}/docker-compose.yml"
+    owner: deploy
+    group: deploy
+  when: game_compose_file is defined
+
+- name: Deploy game env file
+  template:
+    src: "{{ game_env_template }}"
+    dest: "/opt/games/{{ game_name }}/.env"
+    owner: deploy
+    group: deploy
+    mode: "0600"
+  when: game_env_template is defined
+
+- name: Log in to private registry
+  community.docker.docker_login:
+    registry_url: "https://{{ registry_domain }}"
+    username: "{{ registry_user }}"
+    password: "{{ registry_password }}"
+
+- name: Pull and restart game
+  community.docker.docker_compose_v2:
+    project_src: "/opt/games/{{ game_name }}"
+    state: present
+    pull: always
+    recreate: always

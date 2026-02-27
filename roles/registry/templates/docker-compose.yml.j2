@@ -1,0 +1,25 @@
+services:
+  registry:
+    image: registry:2
+    container_name: docker-registry
+    restart: always
+    volumes:
+      - registry-data:/var/lib/registry
+      - ./auth:/auth
+    environment:
+      - VIRTUAL_HOST={{ registry_domain }}
+      - VIRTUAL_PORT=5000
+      - LETSENCRYPT_HOST={{ registry_domain }}
+      - REGISTRY_AUTH=htpasswd
+      - REGISTRY_AUTH_HTPASSWD_REALM=Spielstube Registry
+      - REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd
+      - REGISTRY_STORAGE_DELETE_ENABLED=true
+    networks:
+      - proxy
+
+volumes:
+  registry-data:
+
+networks:
+  proxy:
+    external: true

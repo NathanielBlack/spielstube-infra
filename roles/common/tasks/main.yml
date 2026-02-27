@@ -1,0 +1,71 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install base packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - ufw
+      - fail2ban
+      - htop
+      - unattended-upgrades
+    state: present
+
+- name: Configure UFW defaults
+  ufw:
+    direction: incoming
+    policy: deny
+
+- name: Allow SSH
+  ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+
+- name: Allow HTTP
+  ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+
+- name: Allow HTTPS
+  ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+
+- name: Enable fail2ban
+  systemd:
+    name: fail2ban
+    enabled: yes
+    state: started
+
+- name: Create deploy user
+  user:
+    name: deploy
+    groups: sudo
+    shell: /bin/bash
+    create_home: yes
+
+- name: Add SSH key for deploy user
+  authorized_key:
+    user: deploy
+    key: "{{ lookup('file', deploy_ssh_public_key) }}"
+  when: deploy_ssh_public_key is defined
+
+- name: Allow deploy user passwordless sudo for docker
+  copy:
+    content: "deploy ALL=(ALL) NOPASSWD: /usr/bin/docker, /usr/local/bin/docker-compose, /usr/bin/docker-compose\n"
+    dest: /etc/sudoers.d/deploy-docker
+    mode: "0440"

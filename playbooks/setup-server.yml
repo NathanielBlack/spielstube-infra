@@ -1,0 +1,10 @@
+---
+# Initial server setup: hardening, Docker, proxy, registry
+# Usage: ansible-playbook playbooks/setup-server.yml
+- name: Setup Spielstube server
+  hosts: spielstube
+  roles:
+    - common
+    - docker
+    - proxy
+    - registry

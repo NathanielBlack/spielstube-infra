@@ -1,0 +1,7 @@
+---
+# Deploy or redeploy a game
+# Usage: ansible-playbook playbooks/deploy-game.yml -e game_name=hamburg
+- name: Deploy game
+  hosts: spielstube
+  roles:
+    - game
