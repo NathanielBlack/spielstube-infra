@@ -1,0 +1,21 @@
+services:
+  hamburg1949:
+    image: {{ registry_domain }}/hamburg1949:latest
+    container_name: hamburg1949-game
+    restart: always
+    env_file: .env
+    environment:
+      - VIRTUAL_HOST=hamburg1949.spielstube.app
+      - VIRTUAL_PORT=3001
+      - LETSENCRYPT_HOST=hamburg1949.spielstube.app
+    volumes:
+      - hamburg1949-data:/app/game/data
+    networks:
+      - proxy
+
+volumes:
+  hamburg1949-data:
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,16 @@
+services:
+  rps:
+    image: {{ registry_domain }}/rps:latest
+    container_name: rps-game
+    restart: always
+    env_file: .env
+    environment:
+      - VIRTUAL_HOST=rps.spielstube.app
+      - VIRTUAL_PORT=3001
+      - LETSENCRYPT_HOST=rps.spielstube.app
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

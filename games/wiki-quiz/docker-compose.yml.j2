@@ -1,0 +1,21 @@
+services:
+  wiki-quiz:
+    image: {{ registry_domain }}/wiki-quiz:latest
+    container_name: wiki-quiz-game
+    restart: always
+    env_file: .env
+    environment:
+      - VIRTUAL_HOST=wiki-quiz.spielstube.app
+      - VIRTUAL_PORT=3001
+      - LETSENCRYPT_HOST=wiki-quiz.spielstube.app
+    volumes:
+      - wiki-quiz-data:/app/data
+    networks:
+      - proxy
+
+volumes:
+  wiki-quiz-data:
+
+networks:
+  proxy:
+    external: true

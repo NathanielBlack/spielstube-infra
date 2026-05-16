@@ -1,0 +1,13 @@
+---
+# Deploy Digit Commander game
+# Usage: ansible-playbook games/digit-commander/deploy.yml
+- name: Deploy Digit Commander game
+  hosts: spielstube
+  vars_files:
+    - ../../inventory/vault.yml
+  vars:
+    game_name: digit-commander
+    game_compose_template: "{{ playbook_dir }}/docker-compose.yml.j2"
+    game_env_template: "{{ playbook_dir }}/env.j2"
+  roles:
+    - game

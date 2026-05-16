@@ -1,0 +1,13 @@
+---
+# Deploy Marapoop game
+# Usage: ansible-playbook games/marapoop/deploy.yml
+- name: Deploy Marapoop game
+  hosts: spielstube
+  vars_files:
+    - ../../inventory/vault.yml
+  vars:
+    game_name: marapoop
+    game_compose_template: "{{ playbook_dir }}/docker-compose.yml.j2"
+    game_env_template: "{{ playbook_dir }}/env.j2"
+  roles:
+    - game

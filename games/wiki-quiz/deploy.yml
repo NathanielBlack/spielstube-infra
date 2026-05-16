@@ -1,0 +1,13 @@
+---
+# Deploy Wiki Quiz game
+# Usage: ansible-playbook games/wiki-quiz/deploy.yml
+- name: Deploy Wiki Quiz game
+  hosts: spielstube
+  vars_files:
+    - ../../inventory/vault.yml
+  vars:
+    game_name: wiki-quiz
+    game_compose_template: "{{ playbook_dir }}/docker-compose.yml.j2"
+    game_env_template: "{{ playbook_dir }}/env.j2"
+  roles:
+    - game

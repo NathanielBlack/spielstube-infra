@@ -1,0 +1,13 @@
+---
+# Deploy Kenn Dein Hamburg game
+# Usage: ansible-playbook games/kenn-dein-hamburg/deploy.yml
+- name: Deploy Kenn Dein Hamburg game
+  hosts: spielstube
+  vars_files:
+    - ../../inventory/vault.yml
+  vars:
+    game_name: kenn-dein-hamburg
+    game_compose_template: "{{ playbook_dir }}/docker-compose.yml.j2"
+    game_env_template: "{{ playbook_dir }}/env.j2"
+  roles:
+    - game

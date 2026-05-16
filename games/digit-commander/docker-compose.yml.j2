@@ -1,0 +1,21 @@
+services:
+  digit-commander:
+    image: {{ registry_domain }}/digit-commander:latest
+    container_name: digit-commander-game
+    restart: always
+    env_file: .env
+    environment:
+      - VIRTUAL_HOST=digit-commander.spielstube.app
+      - VIRTUAL_PORT=8080
+      - LETSENCRYPT_HOST=digit-commander.spielstube.app
+    volumes:
+      - digit-commander-maps:/app/Maps
+    networks:
+      - proxy
+
+volumes:
+  digit-commander-maps:
+
+networks:
+  proxy:
+    external: true

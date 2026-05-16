@@ -1,0 +1,21 @@
+services:
+  marapoop:
+    image: {{ registry_domain }}/marapoop:latest
+    container_name: marapoop-game
+    restart: always
+    env_file: .env
+    environment:
+      - VIRTUAL_HOST=marapoop.spielstube.app
+      - VIRTUAL_PORT=3000
+      - LETSENCRYPT_HOST=marapoop.spielstube.app
+    volumes:
+      - marapoop-data:/app/data
+    networks:
+      - proxy
+
+volumes:
+  marapoop-data:
+
+networks:
+  proxy:
+    external: true

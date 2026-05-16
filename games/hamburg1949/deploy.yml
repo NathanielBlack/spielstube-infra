@@ -1,0 +1,14 @@
+---
+# Deploy Hamburg 1949 map game
+# Usage: ansible-playbook games/hamburg1949/deploy.yml
+- name: Deploy Hamburg 1949 game
+  hosts: spielstube
+  vars_files:
+    - ../../inventory/vault.yml
+    - vars.yml
+  vars:
+    game_name: hamburg1949
+    game_compose_template: "{{ playbook_dir }}/docker-compose.yml.j2"
+    game_env_template: "{{ playbook_dir }}/env.j2"
+  roles:
+    - game

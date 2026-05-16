@@ -1,10 +1,12 @@
 ---
-# Deploy Hamburg map game
-# Usage: ansible-playbook games/hamburg/deploy.yml
-- name: Deploy Hamburg game
+# Deploy RPS Extreme
+# Usage: ansible-playbook games/rps/deploy.yml
+- name: Deploy RPS game
   hosts: spielstube
+  vars_files:
+    - ../../inventory/vault.yml
   vars:
-    game_name: hamburg
+    game_name: rps
     game_compose_template: "{{ playbook_dir }}/docker-compose.yml.j2"
     game_env_template: "{{ playbook_dir }}/env.j2"
   roles:

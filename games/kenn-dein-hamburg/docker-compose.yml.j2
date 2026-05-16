@@ -1,0 +1,16 @@
+services:
+  kenn-dein-hamburg:
+    image: {{ registry_domain }}/kenn-dein-hamburg:latest
+    container_name: kenn-dein-hamburg-game
+    restart: always
+    env_file: .env
+    environment:
+      - VIRTUAL_HOST=kenn-dein-hamburg.spielstube.app
+      - VIRTUAL_PORT=3001
+      - LETSENCRYPT_HOST=kenn-dein-hamburg.spielstube.app
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
