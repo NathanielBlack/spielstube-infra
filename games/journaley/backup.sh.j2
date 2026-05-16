@@ -1,0 +1,37 @@
+#!/bin/bash
+set -euo pipefail
+
+BACKUP_DIR="/tmp/journaley-backup"
+DATE=$(date +%Y-%m-%d)
+ARCHIVE="journaley-${DATE}.tar.gz"
+REMOTE_DIR="backups/journaley"
+RETENTION_DAYS={{ journaley_backup_retention_days }}
+
+SSH_CMD="ssh -i /root/.ssh/storagebox -p23 -o StrictHostKeyChecking=accept-new"
+REMOTE="u421627@u421627.your-storagebox.de"
+BLOB_VOLUME="/var/lib/docker/volumes/journaley_blobs/_data"
+
+cleanup() {
+  rm -rf "$BACKUP_DIR"
+}
+trap cleanup EXIT
+
+mkdir -p "$BACKUP_DIR"
+
+docker exec journaley-db pg_dump -U {{ journaley_db_user }} {{ journaley_db_name }} > "$BACKUP_DIR/db.sql"
+
+tar -czf "$BACKUP_DIR/$ARCHIVE" \
+  -C "$BACKUP_DIR" db.sql \
+  -C "$BLOB_VOLUME" .
+
+scp -i /root/.ssh/storagebox -P23 "$BACKUP_DIR/$ARCHIVE" "${REMOTE}:${REMOTE_DIR}/"
+
+CUTOFF=$(date -d "-${RETENTION_DAYS} days" +%Y-%m-%d)
+$SSH_CMD "$REMOTE" "ls ${REMOTE_DIR}/" | grep -oP 'journaley-\d{4}-\d{2}-\d{2}\.tar\.gz' | while read -r file; do
+  file_date=$(echo "$file" | grep -oP '\d{4}-\d{2}-\d{2}')
+  if [[ "$file_date" < "$CUTOFF" ]]; then
+    $SSH_CMD "$REMOTE" "rm ${REMOTE_DIR}/$file"
+  fi
+done
+
+echo "Backup complete: ${ARCHIVE}"

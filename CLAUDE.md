@@ -59,6 +59,7 @@ games/
   rps/                   → Rock Paper Scissors
   wiki-quiz/             → Wikipedia trivia
   Each contains: deploy.yml, docker-compose.yml.j2, env.j2, vars.yml (encrypted)
+  journaley/ also has: backup.sh.j2, backup.yml (nightly backup cron)
 ```
 
 ## Commands
@@ -91,6 +92,20 @@ ssh -i ~/.ssh/danik root@152.53.87.246 docker ps
 4. DNS: wildcard `*.spielstube.app` covers all subdomains including nested ones (e.g. `companion.journaley.spielstube.app`) — no new records needed
 5. Build and push image: `docker build --platform=linux/amd64 -t registry.spielstube.app/<name>:latest . && docker push ...`
 6. Deploy: `ansible-playbook games/<name>/deploy.yml`
+
+## Backups
+
+Journaley has nightly backups to a Hetzner storage box (`u421627@u421627.your-storagebox.de`, SSH port 23).
+
+- **What:** pg_dump + blob volume → single timestamped `.tar.gz`
+- **When:** Nightly at 3:00 AM via root cron
+- **Retention:** 10 days (older archives auto-deleted)
+- **Remote path:** `backups/journaley/`
+- **VPS SSH key:** `/root/.ssh/storagebox` (ed25519, authorized on storage box)
+- **Log:** `/var/log/journaley-backup.log`
+- **Deploy/update:** `ansible-playbook games/journaley/backup.yml`
+
+The storage box is also accessible from this Mac: `ssh -i ~/.ssh/hetzner -p23 u421627@u421627.your-storagebox.de`
 
 ## Workflow
 

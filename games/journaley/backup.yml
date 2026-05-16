@@ -1,0 +1,26 @@
+---
+# Setup Journaley backup cron
+# Usage: ansible-playbook games/journaley/backup.yml
+- name: Setup Journaley backup
+  hosts: spielstube
+  vars_files:
+    - ../../inventory/vault.yml
+    - vars.yml
+  vars:
+    journaley_backup_retention_days: 10
+  tasks:
+    - name: Deploy backup script
+      template:
+        src: "{{ playbook_dir }}/backup.sh.j2"
+        dest: /opt/games/journaley/backup.sh
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Setup nightly backup cron
+      cron:
+        name: journaley-backup
+        job: /opt/games/journaley/backup.sh >> /var/log/journaley-backup.log 2>&1
+        hour: "3"
+        minute: "0"
+        user: root
