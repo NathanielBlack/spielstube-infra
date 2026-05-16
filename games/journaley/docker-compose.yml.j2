@@ -10,6 +10,17 @@ services:
     networks:
       - proxy
 
+  follow:
+    image: {{ registry_domain }}/journaley-follow:latest
+    container_name: journaley-follow
+    restart: always
+    environment:
+      - VIRTUAL_HOST=follow.journaley.spielstube.app
+      - VIRTUAL_PORT=80
+      - LETSENCRYPT_HOST=follow.journaley.spielstube.app
+    networks:
+      - proxy
+
   api:
     image: {{ registry_domain }}/journaley-api:latest
     container_name: journaley-api
