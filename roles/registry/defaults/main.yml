@@ -1,5 +1,8 @@
 ---
 registry_domain: registry.spielstube.app
 registry_user: deploy
-# Override this with ansible-vault or --extra-vars
+# Override these with ansible-vault or --extra-vars
 registry_password: changeme
+# Shared bearer token the registry sends to Watchtower on push notifications.
+# Real value lives in inventory/vault.yml.
+watchtower_http_token: changeme

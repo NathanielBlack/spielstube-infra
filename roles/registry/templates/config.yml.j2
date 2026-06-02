@@ -1,0 +1,31 @@
+version: 0.1
+log:
+  fields:
+    service: registry
+storage:
+  cache:
+    blobdescriptor: inmemory
+  filesystem:
+    rootdirectory: /var/lib/registry
+  delete:
+    enabled: true
+http:
+  addr: :5000
+  headers:
+    X-Content-Type-Options: [nosniff]
+auth:
+  htpasswd:
+    realm: Spielstube Registry
+    path: /auth/htpasswd
+notifications:
+  endpoints:
+    - name: watchtower
+      url: http://watchtower:8080/v1/update
+      headers:
+        Authorization: [Bearer {{ watchtower_http_token }}]
+      timeout: 5s
+      threshold: 3
+      backoff: 10s
+      # Only notify on manifest pushes, not every blob — one ping per `docker push`.
+      ignoredmediatypes:
+        - application/octet-stream

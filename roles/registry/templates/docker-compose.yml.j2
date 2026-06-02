@@ -6,14 +6,11 @@ services:
     volumes:
       - registry-data:/var/lib/registry
       - ./auth:/auth
+      - ./config.yml:/etc/docker/registry/config.yml:ro
     environment:
       - VIRTUAL_HOST={{ registry_domain }}
       - VIRTUAL_PORT=5000
       - LETSENCRYPT_HOST={{ registry_domain }}
-      - REGISTRY_AUTH=htpasswd
-      - REGISTRY_AUTH_HTPASSWD_REALM=Spielstube Registry
-      - REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd
-      - REGISTRY_STORAGE_DELETE_ENABLED=true
     networks:
       - proxy
 

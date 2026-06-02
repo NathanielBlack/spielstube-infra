@@ -1,0 +1,9 @@
+---
+# Deploy/update Watchtower (HTTP-trigger auto-redeploy for labeled containers)
+# Usage: ansible-playbook playbooks/watchtower.yml
+- name: Deploy Watchtower
+  hosts: spielstube
+  vars_files:
+    - ../inventory/vault.yml
+  roles:
+    - watchtower

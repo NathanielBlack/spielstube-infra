@@ -26,12 +26,17 @@ nginx-proxy + acme-companion (shared, auto-SSL)
   ├── api.journaley.spielstube.app       → Journaley sync API (.NET + Postgres)
   ├── registry.spielstube.app            → Private Docker registry
   └── <name>.spielstube.app              → future apps
+
+Non-web containers (no subdomain, outbound only):
+  ├── sababa-bot                         → Sababa Telegram bot
+  └── watchtower                         → auto-redeploy on registry push
 ```
 
 - Shared `proxy` Docker network — all web-facing containers join it
 - nginx-proxy routes by `VIRTUAL_HOST` env var, acme-companion handles Let's Encrypt
 - Each game has its own docker-compose with its own deps (DB, cache, etc.)
 - Images built locally, pushed to registry.spielstube.app, deployed via ansible
+- Watchtower auto-redeploys *labeled* containers when a new image is pushed (see "Auto-redeploy" below)
 
 ## Structure
 
@@ -42,13 +47,15 @@ inventory/
   hosts.yml              → Server connection details
   vault.yml              → Encrypted shared secrets (registry password)
 playbooks/
-  setup-server.yml       → Full server bootstrap (common + docker + proxy + registry)
+  setup-server.yml       → Full server bootstrap (common + docker + proxy + registry + watchtower)
   deploy-game.yml        → Generic game deploy (pass -e game_name=xxx)
+  watchtower.yml         → Deploy/update Watchtower auto-redeploy
 roles/
   common/                → UFW, fail2ban, base packages, deploy user
   docker/                → Docker CE, shared proxy network
   proxy/                 → nginx-proxy + acme-companion
-  registry/              → Private Docker registry with basic auth
+  registry/              → Private Docker registry with basic auth + push notifications
+  watchtower/            → Watchtower (HTTP-trigger auto-redeploy on push)
   game/                  → Generic game deployer (pull + start)
 games/
   digit-commander/       → Digit Commander game
@@ -57,6 +64,7 @@ games/
   kenn-dein-hamburg/     → Hamburg OSM quiz
   marapoop/              → Marapoop game
   rps/                   → Rock Paper Scissors
+  sababa/                → Sababa Telegram bot (no subdomain; Watchtower auto-redeploy)
   wiki-quiz/             → Wikipedia trivia
   Each contains: deploy.yml, docker-compose.yml.j2, env.j2, vars.yml (encrypted)
   journaley/ also has: backup.sh.j2, backup.yml (nightly backup cron)
@@ -92,6 +100,19 @@ ssh -i ~/.ssh/danik root@152.53.87.246 docker ps
 4. DNS: wildcard `*.spielstube.app` covers all subdomains including nested ones (e.g. `companion.journaley.spielstube.app`) — no new records needed
 5. Build and push image: `docker build --platform=linux/amd64 -t registry.spielstube.app/<name>:latest . && docker push ...`
 6. Deploy: `ansible-playbook games/<name>/deploy.yml`
+
+## Auto-redeploy (Watchtower)
+
+Containers can auto-update when a new image is pushed to the registry — no manual deploy needed.
+
+- **How it works:** the registry fires a push notification → Watchtower (`/v1/update`, bearer-token gated) pulls the new image and recreates the container. Event-driven, no polling.
+- **Opt-in per container:** add the label `com.centurylinklabs.watchtower.enable=true` to the service in its `docker-compose.yml.j2`. Watchtower runs with `WATCHTOWER_LABEL_ENABLE=true`, so it *only* touches labeled containers — the games and proxy are never affected unless explicitly labeled.
+- **Shared secret:** `watchtower_http_token` in `inventory/vault.yml` (the registry sends it as `Authorization: Bearer`; Watchtower validates it). Watchtower is on the `proxy` network only, never exposed to the internet.
+- **Registry pull auth:** Watchtower reads root's `/root/.docker/config.json` to pull private images.
+- **Deploy/update:** `ansible-playbook playbooks/watchtower.yml` (also runs as part of `setup-server.yml`).
+- **First deploy of a labeled app is still manual** (`ansible-playbook games/<name>/deploy.yml`); subsequent pushes auto-redeploy.
+
+Used by **sababa** (Telegram bot): collaborator pushes `registry.spielstube.app/sababa:latest` → bot auto-updates ~immediately.
 
 ## Backups
 

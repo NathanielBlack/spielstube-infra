@@ -1,0 +1,19 @@
+services:
+  sababa:
+    image: {{ registry_domain }}/sababa:latest
+    container_name: sababa-bot
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - sababa-data:/data
+    labels:
+      # Opt this container in to Watchtower auto-redeploy on registry push.
+      - com.centurylinklabs.watchtower.enable=true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  sababa-data:

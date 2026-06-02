@@ -1,0 +1,4 @@
+---
+# Shared bearer token that gates Watchtower's HTTP update endpoint.
+# Real value lives in inventory/vault.yml.
+watchtower_http_token: changeme

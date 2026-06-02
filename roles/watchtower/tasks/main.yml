@@ -1,0 +1,20 @@
+---
+- name: Create watchtower directory
+  file:
+    path: /opt/watchtower
+    state: directory
+    owner: deploy
+    group: deploy
+
+- name: Deploy watchtower docker-compose
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/watchtower/docker-compose.yml
+    owner: deploy
+    group: deploy
+
+- name: Start watchtower stack
+  community.docker.docker_compose_v2:
+    project_src: /opt/watchtower
+    state: present
+    pull: always

@@ -1,0 +1,28 @@
+services:
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Root's registry login, written by `docker_login` during deploys — lets
+      # Watchtower pull private images from registry.spielstube.app.
+      - /root/.docker/config.json:/config.json:ro
+    environment:
+      # containrrr/watchtower ships an old Docker client (defaults to API 1.25).
+      # Docker Engine 25+ requires MinAPI 1.44, so pin the client or it crash-loops.
+      - DOCKER_API_VERSION=1.44
+      # HTTP-trigger mode only: respond to POST /v1/update, never poll.
+      - WATCHTOWER_HTTP_API_UPDATE=true
+      - WATCHTOWER_HTTP_API_TOKEN={{ watchtower_http_token }}
+      - WATCHTOWER_HTTP_API_PERIODIC_POLLS=false
+      # Only touch containers explicitly labeled — never the games or proxy.
+      - WATCHTOWER_LABEL_ENABLE=true
+      # Remove the old image after a successful update.
+      - WATCHTOWER_CLEANUP=true
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
