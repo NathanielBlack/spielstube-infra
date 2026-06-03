@@ -64,7 +64,7 @@ games/
   kenn-dein-hamburg/     → Hamburg OSM quiz
   marapoop/              → Marapoop game
   rps/                   → Rock Paper Scissors
-  sababa/                → Sababa Telegram bot (no subdomain; Watchtower auto-redeploy)
+  sababa/                → Sababa Telegram bot + local whisper voice-to-text sidecar (no subdomain)
   wiki-quiz/             → Wikipedia trivia
   Each contains: deploy.yml, docker-compose.yml.j2, env.j2, vars.yml (encrypted)
   journaley/ also has: backup.sh.j2, backup.yml (nightly backup cron)
@@ -113,6 +113,8 @@ Containers can auto-update when a new image is pushed to the registry — no man
 - **First deploy of a labeled app is still manual** (`ansible-playbook games/<name>/deploy.yml`); subsequent pushes auto-redeploy.
 
 Used by **sababa** (Telegram bot): collaborator pushes `registry.spielstube.app/sababa:latest` → bot auto-updates ~immediately.
+
+**Sababa whisper sidecar:** `games/sababa/docker-compose.yml.j2` also runs a `whisper` service (faster-whisper, `small`/int8, CPU-capped at 2 cores / 2 GB) for local voice-to-text. Internal only — the bot reaches it at `http://whisper:9000` (passed in via `WHISPER_URL`). Public image, so it does not Watchtower-auto-redeploy; only the bot image does. ASR API: `POST /asr?task=transcribe&language=de&output=txt` with multipart `audio_file` (handles Telegram OGG/Opus directly).
 
 ## Backups
 

@@ -4,6 +4,8 @@ services:
     container_name: sababa-bot
     restart: unless-stopped
     env_file: .env
+    depends_on:
+      - whisper
     volumes:
       - sababa-data:/data
     labels:
@@ -15,5 +17,31 @@ services:
         max-size: "10m"
         max-file: "5"
 
+  # Local voice-to-text (faster-whisper). Internal only — sababa reaches it at
+  # http://whisper:9000 over the compose network. Public image, so no Watchtower
+  # label (the registry-push trigger only fires for registry.spielstube.app images).
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: sababa-whisper
+    restart: unless-stopped
+    environment:
+      - ASR_ENGINE=faster_whisper
+      # "small" is the German sweet spot on CPU; drop to "base" if too slow,
+      # do NOT use medium/large on this GPU-less box.
+      - ASR_MODEL=small
+      - ASR_COMPUTE_TYPE=int8
+    volumes:
+      # Persist the downloaded model so it isn't re-fetched on every restart.
+      - whisper-cache:/root/.cache
+    # Cap the blast radius: a transcription burst can't starve the games/proxy.
+    cpus: 2.0
+    mem_limit: 2g
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
 volumes:
   sababa-data:
+  whisper-cache:
